@@ -6,9 +6,10 @@ var morgan = require('morgan');
 const mongoose = require('mongoose');
 var bcrypt = require("bcrypt-inzi");
 var jwt = require('jsonwebtoken');
-const { connect } = require("mongodb");
+var path = require('path');
 
 var SERVER_SECRET = process.env.SECRET || "1234";
+
 
 /////////////////////////////////////////////////////////////////////////
 let dbURI = "mongodb+srv://root:root@cluster0.cnbo3.mongodb.net/testdb?retryWrites=true&w=majority";
@@ -63,6 +64,7 @@ app.use(cors({
     credentials: true
 }));
 app.use(morgan('dev'));
+app.use("/", express.static(path.resolve(path.join(__dirname, "frontend"))));
 
 app.post("/signup", (req, res, next) => {
     if (!req.body.name
@@ -246,13 +248,13 @@ app.get("/profile", (req, res, next) => {
         });
 });
 
-app.post("/logout", (res, req, next) => {
+app.post("/logout", (req, res, next) => {
     res.cookie('jTocken', "", {
         maxAge: 86_400_000,
         httpOnly: true
     });
     res.send("Logout Success");
-});
+})
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {

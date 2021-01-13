@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Signup Form</title>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+</head>
+
+<body>
+    <form onsubmit="return Signup()">
+        <label>Name: </label>
+        <br>
+        <input type="text" id="sname">
+        <br><br>
+        <label>Email: </label>
+        <br>
+        <input type="email" id="semail">
+        <br><br>
+        <label>Password: </label>
+        <br>
+        <input type="password" id="spassword">
+        <br><br>
+        <label>Phone Number: </label>
+        <br>
+        <input type="text" id="snumber">
+        <br><br>
+        <label>Gender: </label>
+        <br>
+        <select name="gender" id="sgender">
+            <option value="Male">Male</option>
+            <option value="Female">Female</option>
+        </select>
+        <br><br>
+        <button>SIGNUP</button>
+    </form>
+</body>
+<script src="index.js"></script>
+
+</html>
