@@ -1,5 +1,5 @@
 const url = "http://localhost:5000"
-function signup() {
+function Signup() {
     axios({
         method: 'post',
         url: "http://localhost:5000/signup",
@@ -12,8 +12,8 @@ function signup() {
         }
     })
         .then(function (response) {
-            console.log(response.data);
-            // alert(response.data.message);
+            console.log(response.data.message);
+            alert(response.data.message);
             // window.location.href = "login.html"
         })
         .catch(function (error) {

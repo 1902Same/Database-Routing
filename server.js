@@ -1,3 +1,5 @@
+const PORT = process.env.PORT || 5000;
+
 var express = require("express");
 var bodyParser = require('body-parser');
 var cookieParser = require('cookie-parser');
@@ -9,8 +11,6 @@ var jwt = require('jsonwebtoken');
 var path = require('path');
 
 var SERVER_SECRET = process.env.SECRET || "1234";
-
-
 /////////////////////////////////////////////////////////////////////////
 let dbURI = "mongodb+srv://root:root@cluster0.cnbo3.mongodb.net/testdb?retryWrites=true&w=majority";
 // let dbURI = 'mongodb://localhost:27017/abc-database';
@@ -41,8 +41,6 @@ process.on('SIGINT', function () {//this function will run jst before app is clo
 });
 
 ////////////////mongodb connected disconnected events///////////////////////////////////////////////
-
-// https://mongoosejs.com/docs/schematypes.html#what-is-a-schematype
 var userSchema = new mongoose.Schema({
     "name": String,
     "email": String,
@@ -53,7 +51,6 @@ var userSchema = new mongoose.Schema({
     "activeSince": Date
 });
 
-// https://mongoosejs.com/docs/models.html
 var userModel = mongoose.model("users", userSchema);
 
 var app = express();
@@ -67,12 +64,7 @@ app.use(morgan('dev'));
 app.use("/", express.static(path.resolve(path.join(__dirname, "frontend"))));
 
 app.post("/signup", (req, res, next) => {
-    if (!req.body.name
-        || !req.body.email
-        || !req.body.password
-        || !req.body.phone
-        || !req.body.gender) {
-
+    if (!req.body.name || !req.body.email || !req.body.password || !req.body.phone || !req.body.gender) {
         res.status(403).send(`
             please send name, email, passwod, phone and gender in json body.
             e.g:
@@ -85,46 +77,44 @@ app.post("/signup", (req, res, next) => {
             }`)
         return;
     }
-
-    // https://mongoosejs.com/docs/models.html#constructing-documents
-    userModel.findOne({ email: req.body.email },
-        function (err, doc) {
-            if (!err & !doc) {
-
-                bcrypt.stringToHash(req.body.password).then(function (hash) {
-                    var newUser = new userModel({
-                        "name": req.body.name,
-                        "email": req.body.email,
-                        "password": hash,
-                        "phone": req.body.phone,
-                        "gender": req.body.gender,
-                    });
-
-                    newUser.save((err, data) => {
-                        if (!err) {
-                            res.send({
-                                message: "user created"
-                            });
-                        } else {
-                            console.log(err);
-                            res.status(500).send({
-                                message: "user create error, " + err
-                            });
-                        }
-                    });
+    userModel.findOne({ email: req.body.email }, function (err, doc) {
+        if (!err && !doc) {
+            bcrypt.stringToHash(req.body.password).then(function (hash) {
+                var newUser = new userModel({
+                    "name": req.body.name,
+                    "email": req.body.email,
+                    "password": hash,
+                    "phone": req.body.phone,
+                    "gender": req.body.gender,
                 });
-            }
-            else if (err) {
-                res.status(500).send({
-                    message: "db error"
-                })
-            }
-            else {
-                res.status(409).send({
-                    message: "user already exist"
+                newUser.save((err, data) => {
+                    // console.log(data);
+                    if (!err) {
+                        res.send({
+                            message: "Signup Successfuly",
+                            data: data
+                        });
+                    }
+                    else {
+                        console.log(err);
+                        res.status(500).send({
+                            message: "User create error, " + err
+                        });
+                    }
                 });
-            }
-        })
+            });
+        }
+        else if (err) {
+            res.status(500).send({
+                message: "DB Error"
+            });
+        }
+        else {
+            res.status(409).send({
+                message: "User already exist!"
+            });
+        }
+    })
 });
 
 app.post("/login", (req, res, next) => {
@@ -256,7 +246,6 @@ app.post("/logout", (req, res, next) => {
     res.send("Logout Success");
 })
 
-const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
     console.log("server is running on: ", PORT);
 });
