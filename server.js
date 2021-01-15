@@ -9,6 +9,7 @@ const mongoose = require('mongoose');
 var bcrypt = require("bcrypt-inzi");
 var jwt = require('jsonwebtoken');
 var path = require('path');
+const favicons = require('favicons');
 
 var SERVER_SECRET = process.env.SECRET || "1234";
 /////////////////////////////////////////////////////////////////////////
@@ -74,7 +75,7 @@ app.post("/signup", (req, res, next) => {
                 "password": "abc",
                 "phone": "03001234567",
                 "gender": "Male"
-            }`)
+            }`);
         return;
     }
     userModel.findOne({ email: req.body.email }, function (err, doc) {
@@ -92,6 +93,7 @@ app.post("/signup", (req, res, next) => {
                     if (!err) {
                         res.send({
                             message: "Signup Successfuly",
+                            status: 200,
                             data: data
                         });
                     }
@@ -105,13 +107,15 @@ app.post("/signup", (req, res, next) => {
             });
         }
         else if (err) {
-            res.status(500).send({
-                message: "DB Error"
+            res.send({
+                message: "DB Error" + err,
+                status: 500
             });
         }
         else {
-            res.status(409).send({
-                message: "User already exist!"
+            res.send({
+                message: "User already exist!",
+                status: 409
             });
         }
     })
@@ -119,70 +123,71 @@ app.post("/signup", (req, res, next) => {
 
 app.post("/login", (req, res, next) => {
     if (!req.body.email || !req.body.password) {
-
-        res.status(403).send(`
+        res.send(`
             please send email and passwod in json body.
             e.g:
             {
                 "email": "abdul@gmail.com",
                 "password": "abc",
             }`)
-        return;
+        // return;
     }
 
-    userModel.findOne({ email: req.body.email },
-        function (err, user) {
-            if (err) {
-                res.status(500).send({
-                    message: "An error occured: " + JSON.stringify(err)
-                });
-            }
-            else if (user) {
+    userModel.findOne({ email: req.body.email }, function (err, data) {
+        if (err) {
+            console.log(err);
+            res.status(500).send({
+                message: "An error occured: " + JSON.stringify(err)
+            });
+        }
+        else if (data) {
+            console.log(req.body.email);
+            bcrypt.varifyHash(req.body.password, data.password).then(isMatched => {
+                if (isMatched) {
+                    console.log("Matched");
 
-                bcrypt.varifyHash(req.body.password, user.password).then(isMatched => {
-                    if (isMatched) {
-                        console.log("Matched");
+                    let tocken = jwt.sign({
+                        id: data._id,
+                        name: data.name,
+                        email: data.email,
+                        phone: data.phone,
+                        gender: data.gender,
+                        // ip: req.connection.remoteAddress
+                    }, SERVER_SECRET)
 
-                        var tocken = jwt.sign({
-                            id: user._id,
-                            name: user.name,
-                            email: user.email,
-                            phone: user.phone,
-                            gender: user.gender,
-                            ip: req.connection.remoteAddress
-                        }, SERVER_SECRET)
+                    res.cookie('jTocken', tocken, {
+                        maxAge: 86_400_000,
+                        httpOnly: true
+                    });
 
-                        res.cookie('jTocken', tocken, {
-                            maxAge: 86_400_000,
-                            httpOnly: true
-                        })
-
-                        res.send({
-                            message: "Login Success",
-                            user: {
-                                name: user.name,
-                                email: user.email,
-                                phone: user.phone,
-                                gender: user.gender,
-                            }
-                        });
-                    }
-                    else {
-                        console.log("not matched");
-                        res.status(401).send({
-                            message: "incorrect password"
-                        })
-                    }
-                }).catch(e => {
-                    console.log("error: ", e)
-                })
-            }
-            else {
-                res.status(403).send({
-                    message: "user not found"
-                });
-            }
-        });
+                    res.send({
+                        message: "Login Success",
+                        user: {
+                            name: data.name,
+                            email: data.email,
+                            phone: data.phone,
+                            gender: data.gender,
+                        },
+                    });
+                }
+                else {
+                    console.log("Password not matched");
+                    res.send({
+                        message: "Incorrect Password",
+                        status: 409
+                    });
+                }
+            }).catch(e => {
+                console.log("Error: ", e)
+            });
+        }
+        else {
+            res.send({
+                message: "User not found",
+                status: 403
+            });
+        }
+    });
 });
 
 app.use(function (req, res, next) {
@@ -231,8 +236,9 @@ app.get("/profile", (req, res, next) => {
                 });
             }
             else {
-                res.status(500).send({
-                    message: "Server error"
+                res.send({
+                    message: "Server error",
+                    status: 500
                 });
             }
         });

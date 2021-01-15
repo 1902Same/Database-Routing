@@ -1,3 +1,5 @@
+// const axios = require("axios");
+
 const url = "http://localhost:5000"
 function Signup() {
     axios({
@@ -14,10 +16,44 @@ function Signup() {
         .then(function (response) {
             console.log(response.data.message);
             alert(response.data.message);
-            // window.location.href = "login.html"
+            window.location.href = "login.html"
         })
         .catch(function (error) {
             console.log(error);
         });
     return false;
+}
+
+function Login() {
+    axios({
+        method: 'post',
+        url: "http://localhost:5000/login",
+        data: {
+            email: document.getElementById("lemail").value,
+            password: document.getElementById("lpassword").value
+        }, withCredentials: true
+    })
+        .then((response) => {
+            console.log(response);
+            alert(response.data.message);
+            window.location.href = "profile.html"
+        })
+        .catch(function (error) {
+            console.log(error);
+            // alert(error);
+        });
+    return false;
+}
+
+function Profile() {
+    axios({
+        method: 'get',
+        url: "http://localhost:5000/profile"
+    })
+        .then((response) => {
+            document.getElementById("pname").innerHTML = response.data.profile.name
+            document.getElementById("pemail").innerHTML = response.data.profile.email,
+                document.getElementById("pphone").innerHTML = response.data.profile.phone,
+                document.getElementById("pgender").innerHTML = response.data.profile.gender
+        });
 }
