@@ -14,9 +14,13 @@ function Signup() {
         }
     })
         .then(function (response) {
-            console.log(response.data.message);
-            alert(response.data.message);
-            window.location.href = "login.html"
+            if (response.data.status === 200) {
+                alert(response.data.message);
+                window.location.href = "login.html"
+            }
+            else {
+                alert(response.data.message);
+            }
         })
         .catch(function (error) {
             console.log(error);
@@ -34,9 +38,13 @@ function Login() {
         }, withCredentials: true
     })
         .then((response) => {
-            console.log(response);
-            alert(response.data.message);
-            window.location.href = "profile.html"
+            if (response.data.status === 200) {
+                alert(response.data.message);
+                window.location.href = "profile.html"
+            }
+            else {
+                alert(response.data.message);
+            }
         })
         .catch(function (error) {
             console.log(error);
